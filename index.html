@@ -1,79 +1,145 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en" >
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Merry Christmas</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap');
 
-        body, html {
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            height: 100vh;
             overflow: hidden;
-            background-color: #050505; /* 深黑背景衬托发光 */
-            font-family: 'Mountains of Christmas', cursive;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #161616;
+            color: #c5a880;
+            font-family: 'Mountains of Christmas', sans-serif; /* 使用圣诞字体 */
         }
 
-        #canvas-container {
+        /* 音乐选择菜单样式优化 */
+        #overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
-        }
-
-        /* UI 层 */
-        .ui-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none; /* 让点击穿透到 Canvas，除非点在按钮上 */
+            z-index: 100;
+            background: rgba(22, 22, 22, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
 
-        .greeting-box {
-            margin-top: 10vh;
+        label {
+            display: inline-block;
+            background-color: #161616;
+            padding: 16px;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            width: 300px;
+            border-radius: 10px;
+            border: 1px solid #c5a880;
             text-align: center;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            animation: float 4s ease-in-out infinite;
         }
 
-        .greeting {
-            color: #fff;
-            font-size: 4rem;
+        ul {
+            list-style-type: none;
+            padding: 0;
             margin: 0;
-            background: linear-gradient(to bottom, #fff, #ffd700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
-        .sub-greeting {
-            color: #e0e0e0;
+        .btn {
+            background-color: #161616;
+            border-radius: 10px;
+            color: #c5a880;
+            border: 1px solid #c5a880;
+            padding: 16px;
+            width: 300px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            cursor: pointer;
+            font-family: sans-serif; /* 按钮保持清晰字体 */
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #c5a880;
+            color: #161616;
+        }
+
+        .separator {
+            font-weight: bold;
+            text-align: center;
+            width: 300px;
+            margin: 16px 0px;
+            color: #a07676;
+        }
+
+        .title {
+            color: #a07676;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .text-loading {
             font-size: 2rem;
+        }
+
+        /* === 新增：祝福语 UI === */
+        .greeting-container {
+            position: absolute;
+            top: 5%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none; /* 让点击穿透 */
+        }
+
+        .main-title {
+            color: #fff;
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .sub-title {
+            color: #e0e0e0;
+            font-size: 1.5rem;
             margin-top: 10px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
         }
 
         .tap-hint {
             position: absolute;
-            bottom: 50px;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
             color: rgba(255, 255, 255, 0.5);
-            font-size: 1.2rem;
+            font-size: 1rem;
+            z-index: 20;
+            pointer-events: none;
             animation: pulse 2s infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6; }
         }
 
         @keyframes pulse {
@@ -92,7 +158,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 200; /* 确保在最上层 */
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.6s ease;
@@ -122,8 +188,9 @@
 
         .message-text {
             color: #fff;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             line-height: 1.6;
+            font-family: sans-serif;
         }
 
         .close-hint {
@@ -133,265 +200,551 @@
             cursor: pointer;
         }
 
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .greeting { font-size: 3rem; }
-            .sub-greeting { font-size: 1.5rem; }
-            .message-text { font-size: 1.4rem; }
-            .message-card { padding: 25px; width: 85%; }
-        }
     </style>
-    <!-- 引入 Three.js -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
+
+    <script>
+        window.console = window.console || function(t) {};
+    </script>
+
+    <script>
+        if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
         }
     </script>
+
 </head>
-<body>
 
-    <div id="canvas-container"></div>
+<body translate="no" >
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
-    <div class="ui-container">
-        <div class="greeting-box">
-            <h1 class="greeting">Merry Christmas</h1>
-            <div class="sub-greeting">To: 小星⭐</div>
+<!-- 音乐选择界面 -->
+<div id="overlay">
+    <ul>
+        <li class="title">请选择一首音乐开始</li>
+        <li>
+            <button class="btn" id="btnA" type="button">
+                Snowflakes Falling Down
+            </button>
+        </li>
+        <li><button class="btn" id="btnB" type="button">This Christmas</button></li>
+        <li><button class="btn" id="btnC" type="button">No room at the inn</button></li>
+        <li><button class="btn" id="btnD" type="button">Jingle Bell Swing</button></li>
+        <li class="separator">或者</li>
+        <li>
+            <input type="file" id="upload" hidden />
+            <label for="upload">上传本地音乐</label>
+        </li>
+    </ul>
+</div>
+
+<!-- 顶部祝福语 -->
+<div class="greeting-container">
+    <h1 class="main-title">Merry Christmas</h1>
+    <div class="sub-title">To: 小星⭐</div>
+</div>
+
+<!-- 底部提示 -->
+<div class="tap-hint">(Tap screen for a surprise)</div>
+
+<!-- 祝福语弹窗 -->
+<div class="message-overlay" id="message-overlay">
+    <div class="message-card">
+        <div class="message-text">
+            May the Christmas season bring only happiness and joy to you and your family.<br><br>
+            Wishing you peace, love, and joy this Christmas and throughout 2026.<br><br>
+            Merry Christmas! 🎄✨
         </div>
-        <div class="tap-hint">(Tap screen for a surprise)</div>
+        <div class="close-hint">Tap to close</div>
     </div>
+</div>
 
-    <div class="message-overlay" id="message-overlay">
-        <div class="message-card">
-            <div class="message-text">
-                May the Christmas season bring only happiness and joy to you and your family.<br><br>
-                Wishing you peace, love, and joy this Christmas and throughout 2026.<br><br>
-                Merry Christmas! 🎄✨
-            </div>
-            <div class="close-hint">Tap to close</div>
-        </div>
-    </div>
+<script id="rendered-js" >
+    const { PI, sin, cos } = Math;
+    const TAU = 2 * PI;
 
-    <script type="module">
-        import * as THREE from 'three';
+    const map = (value, sMin, sMax, dMin, dMax) => {
+        return dMin + (value - sMin) / (sMax - sMin) * (dMax - dMin);
+    };
 
-        // --- 初始化场景 ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        // 添加一点迷雾，增加深邃感
-        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+    const range = (n, m = 0) =>
+        Array(n).
+        fill(m).
+        map((i, j) => i + j);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 3, 12); // 相机位置
-        camera.lookAt(0, 2, 0);
+    const rand = (max, min = 0) => min + Math.random() * (max - min);
+    const randInt = (max, min = 0) => Math.floor(min + Math.random() * (max - min));
+    const randChoise = arr => arr[randInt(arr.length)];
+    const polar = (ang, r = 1) => [r * cos(ang), r * sin(ang)];
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    let scene, camera, renderer, analyser;
+    let step = 0;
+    const uniforms = {
+        time: { type: "f", value: 0.0 },
+        step: { type: "f", value: 0.0 } };
+
+    const params = {
+        exposure: 1,
+        bloomStrength: 0.9,
+        bloomThreshold: 0,
+        bloomRadius: 0.5 };
+
+    let composer;
+
+    const fftSize = 2048;
+    const totalPoints = 4000;
+
+    const listener = new THREE.AudioListener();
+
+    const audio = new THREE.Audio(listener);
+
+    document.querySelector("input").addEventListener("change", uploadAudio, false);
+
+    const buttons = document.querySelectorAll(".btn");
+    buttons.forEach((button, index) =>
+        button.addEventListener("click", () => loadAudio(index)));
+
+
+    function init() {
+        const overlay = document.getElementById("overlay");
+        overlay.remove(); // 移除音乐选择层，显示 Canvas
+
+        scene = new THREE.Scene();
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 优化移动端性能
-        container.appendChild(renderer.domElement);
+        document.body.appendChild(renderer.domElement);
 
-        // --- 灯光系统 ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-        scene.add(ambientLight);
+        camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            1,
+            1000);
 
-        // 主光源 - 暖色调
-        const pointLight = new THREE.PointLight(0xffd700, 1.5, 50);
-        pointLight.position.set(5, 10, 5);
-        scene.add(pointLight);
+        camera.position.set(-0.09397456774197047, -2.5597086635726947, 24.420789670889008);
+        camera.rotation.set(0.10443543723052419, -0.003827152981119352, 0.0004011488708739715);
 
-        // 补光 - 冷色调
-        const blueLight = new THREE.PointLight(0x0044ff, 1, 30);
-        blueLight.position.set(-5, 5, -5);
-        scene.add(blueLight);
+        const format = renderer.capabilities.isWebGL2 ?
+            THREE.RedFormat :
+            THREE.LuminanceFormat;
 
-        // --- 构建 3D 圣诞树 ---
-        const treeGroup = new THREE.Group();
-        scene.add(treeGroup);
+        uniforms.tAudioData = {
+            value: new THREE.DataTexture(analyser.data, fftSize / 2, 1, format) };
 
-        // 1. 树叶 (层叠圆锥体)
-        const leavesMaterial = new THREE.MeshStandardMaterial({
-            color: 0x0f5e28,
-            roughness: 0.8,
-            metalness: 0.2,
-            flatShading: true // 低多边形风格，更有棱角感
+
+        addPlane(scene, uniforms, 3000);
+        addSnow(scene, uniforms);
+
+        range(10).map(i => {
+            addTree(scene, uniforms, totalPoints, [20, 0, -20 * i]);
+            addTree(scene, uniforms, totalPoints, [-20, 0, -20 * i]);
         });
 
-        const levels = 5;
-        for (let i = 0; i < levels; i++) {
-            const radius = 3.5 - i * 0.6;
-            const height = 2.5;
-            const y = i * 1.8;
+        const renderScene = new THREE.RenderPass(scene, camera);
 
-            const geometry = new THREE.ConeGeometry(radius, height, 8); // 8边形，比较立体
-            const cone = new THREE.Mesh(geometry, leavesMaterial);
-            cone.position.y = y + 1;
-            cone.castShadow = true;
-            cone.receiveShadow = true;
-            treeGroup.add(cone);
+        const bloomPass = new THREE.UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.5,
+            0.4,
+            0.85);
 
-            // 2. 装饰彩灯 (每层边缘)
-            const ornamentCount = 6 + i * 2; // 下面多，上面少
-            for (let j = 0; j < ornamentCount; j++) {
-                const angle = (j / ornamentCount) * Math.PI * 2;
-                const r = radius - 0.2; // 稍微往里一点
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
 
-                // 随机颜色：红、金、蓝
-                const colors = [0xff0000, 0xffd700, 0x0088ff];
-                const color = colors[Math.floor(Math.random() * colors.length)];
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
 
-                const bulbGeo = new THREE.SphereGeometry(0.15, 16, 16);
-                const bulbMat = new THREE.MeshStandardMaterial({
-                    color: color,
-                    emissive: color, // 自发光
-                    emissiveIntensity: 0.8,
-                    metalness: 0.9,
-                    roughness: 0.1
-                });
-
-                const bulb = new THREE.Mesh(bulbGeo, bulbMat);
-                // 计算圆锥底部的边缘位置
-                bulb.position.set(
-                    Math.cos(angle) * r,
-                    y - height/2 + 1 + 0.1, // 挂在每层底部边缘
-                    Math.sin(angle) * r
-                );
-
-                // 给彩灯添加自定义属性用于动画
-                bulb.userData = {
-                    phase: Math.random() * Math.PI * 2,
-                    speed: 2 + Math.random() * 2
-                };
-
-                treeGroup.add(bulb);
-            }
-        }
-
-        // 3. 树干
-        const trunkGeo = new THREE.CylinderGeometry(0.6, 0.8, 2, 8);
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5e3a18, roughness: 0.9 });
-        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-        trunk.position.y = 0;
-        treeGroup.add(trunk);
-
-        // 4. 顶部星星
-        const starGeo = new THREE.OctahedronGeometry(0.6, 0);
-        const starMat = new THREE.MeshStandardMaterial({
-            color: 0xffd700,
-            emissive: 0xffd700,
-            emissiveIntensity: 1.5,
-            metalness: 1,
-            roughness: 0
-        });
-        const star = new THREE.Mesh(starGeo, starMat);
-        star.position.y = levels * 1.8 + 0.5;
-        treeGroup.add(star);
-
-        // 5. 地面 (反光雪地)
-        const groundGeo = new THREE.CircleGeometry(15, 32);
-        const groundMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            roughness: 0.3,
-            metalness: 0.1
-        });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -1;
-        scene.add(ground);
-
-        // --- 粒子雪花系统 ---
-        const snowCount = 1000;
-        const snowGeo = new THREE.BufferGeometry();
-        const snowPos = [];
-        const snowVelocities = [];
-
-        for(let i=0; i<snowCount; i++) {
-            snowPos.push(
-                (Math.random() - 0.5) * 30, // x
-                (Math.random() - 0.5) * 30 + 10, // y (start high)
-                (Math.random() - 0.5) * 30  // z
-            );
-            snowVelocities.push(
-                (Math.random() - 0.5) * 0.05, // vx
-                -(Math.random() * 0.05 + 0.02), // vy (down)
-                (Math.random() - 0.5) * 0.05 // vz
-            );
-        }
-
-        snowGeo.setAttribute('position', new THREE.Float32BufferAttribute(snowPos, 3));
-        const snowMat = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.15,
-            transparent: true,
-            opacity: 0.8
-        });
-        const snowSystem = new THREE.Points(snowGeo, snowMat);
-        scene.add(snowSystem);
-
-        // --- 动画循环 ---
-        const clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = clock.getElapsedTime();
-
-            // 1. 树旋转
-            treeGroup.rotation.y = Math.sin(time * 0.2) * 0.3; // 缓慢左右摇摆
-
-            // 2. 星星自转
-            star.rotation.y = time * 0.5;
-            star.scale.setScalar(1 + Math.sin(time * 3) * 0.1); // 呼吸效果
-
-            // 3. 彩灯闪烁
-            treeGroup.children.forEach(child => {
-                if (child.geometry.type === 'SphereGeometry') { // 找到彩灯
-                    const intensity = 0.5 + Math.sin(time * child.userData.speed + child.userData.phase) * 0.5;
-                    child.material.emissiveIntensity = intensity > 0 ? intensity : 0.1;
-                }
-            });
-
-            // 4. 雪花飘落
-            const positions = snowSystem.geometry.attributes.position.array;
-            for(let i=0; i<snowCount; i++) {
-                // Update y
-                positions[i*3 + 1] += snowVelocities[i]; // y
-                positions[i*3] += Math.sin(time + i) * 0.01; // x sway
-
-                // Reset if below ground
-                if(positions[i*3 + 1] < -1) {
-                    positions[i*3 + 1] = 15;
-                }
-            }
-            snowSystem.geometry.attributes.position.needsUpdate = true;
-
-            renderer.render(scene, camera);
-        }
-
+        addListners(camera, renderer, composer);
         animate();
+    }
 
-        // --- 交互逻辑 ---
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+    function animate(time) {
+        analyser.getFrequencyData();
+        uniforms.tAudioData.value.needsUpdate = true;
+        step = (step + 1) % 1000;
+        uniforms.time.value = time;
+        uniforms.step.value = step;
+        composer.render();
+        requestAnimationFrame(animate);
+    }
+
+    function loadAudio(i) {
+        document.getElementById("overlay").innerHTML =
+            '<div class="text-loading">正在加载音乐...</div>';
+        const files = [
+            "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Simon_Panrucker/Happy_Christmas_You_Guys/Simon_Panrucker_-_01_-_Snowflakes_Falling_Down.mp3",
+            "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Dott/This_Christmas/Dott_-_01_-_This_Christmas.mp3",
+            "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/TRG_Banks/TRG_Banks_Christmas_Album/TRG_Banks_-_12_-_No_room_at_the_inn.mp3",
+            "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Mark_Smeby/En_attendant_Nol/Mark_Smeby_-_07_-_Jingle_Bell_Swing.mp3"];
+
+        const file = files[i];
+
+        const loader = new THREE.AudioLoader();
+        loader.load(file, function (buffer) {
+            audio.setBuffer(buffer);
+            audio.play();
+            analyser = new THREE.AudioAnalyser(audio, fftSize);
+            init();
         });
+    }
 
-        // 点击事件
-        const overlay = document.getElementById('message-overlay');
 
-        // 点击屏幕任意位置 (除了 overlay 内部)
-        document.addEventListener('click', (e) => {
-            // 如果点击的不是 overlay 内部的内容，则显示 overlay
-            if (!overlay.contains(e.target) && !overlay.classList.contains('active')) {
-                overlay.classList.add('active');
+    function uploadAudio(event) {
+        document.getElementById("overlay").innerHTML =
+            '<div class="text-loading">请稍等...</div>';
+        const files = event.target.files;
+        const reader = new FileReader();
+
+        reader.onload = function (file) {
+            var arrayBuffer = file.target.result;
+
+            listener.context.decodeAudioData(arrayBuffer, function (audioBuffer) {
+                audio.setBuffer(audioBuffer);
+                audio.play();
+                analyser = new THREE.AudioAnalyser(audio, fftSize);
+                init();
+            });
+        };
+
+        reader.readAsArrayBuffer(files[0]);
+    }
+
+    function addTree(scene, uniforms, totalPoints, treePosition) {
+        const vertexShader = `
+      attribute float mIndex;
+      varying vec3 vColor;
+      varying float opacity;
+      uniform sampler2D tAudioData;
+      float norm(float value, float min, float max ){
+       return (value - min) / (max - min);
+      }
+      float lerp(float norm, float min, float max){
+       return (max - min) * norm + min;
+      }
+      float map(float value, float sourceMin, float sourceMax, float destMin, float destMax){
+       return lerp(norm(value, sourceMin, sourceMax), destMin, destMax);
+      }
+      void main() {
+       vColor = color;
+       vec3 p = position;
+       vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
+       float amplitude = texture2D( tAudioData, vec2( mIndex, 0.1 ) ).r;
+       float amplitudeClamped = clamp(amplitude-0.4,0.0, 0.6 );
+       float sizeMapped = map(amplitudeClamped, 0.0, 0.6, 1.0, 20.0);
+       opacity = map(mvPosition.z , -200.0, 15.0, 0.0, 1.0);
+       gl_PointSize = sizeMapped * ( 100.0 / -mvPosition.z );
+       gl_Position = projectionMatrix * mvPosition;
+      }
+      `;
+        const fragmentShader = `
+      varying vec3 vColor;
+      varying float opacity;
+      uniform sampler2D pointTexture;
+      void main() {
+       gl_FragColor = vec4( vColor, opacity );
+       gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+      }
+      `;
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                ...uniforms,
+                pointTexture: {
+                    value: new THREE.TextureLoader().load(`https://assets.codepen.io/3685267/spark1.png`) } },
+
+
+            vertexShader,
+            fragmentShader,
+            blending: THREE.AdditiveBlending,
+            depthTest: false,
+            transparent: true,
+            vertexColors: true });
+
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+        const sizes = [];
+        const phases = [];
+        const mIndexs = [];
+
+        const color = new THREE.Color();
+
+        for (let i = 0; i < totalPoints; i++) {
+            const t = Math.random();
+            const y = map(t, 0, 1, -8, 10);
+            const ang = map(t, 0, 1, 0, 6 * TAU) + TAU / 2 * (i % 2);
+            const [z, x] = polar(ang, map(t, 0, 1, 5, 0));
+
+            const modifier = map(t, 0, 1, 1, 0);
+            positions.push(x + rand(-0.3 * modifier, 0.3 * modifier));
+            positions.push(y + rand(-0.3 * modifier, 0.3 * modifier));
+            positions.push(z + rand(-0.3 * modifier, 0.3 * modifier));
+
+            color.setHSL(map(i, 0, totalPoints, 1.0, 0.0), 1.0, 0.5);
+
+            colors.push(color.r, color.g, color.b);
+            phases.push(rand(1000));
+            sizes.push(1);
+            const mIndex = map(i, 0, totalPoints, 1.0, 0.0);
+            mIndexs.push(mIndex);
+        }
+
+        geometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(positions, 3).setUsage(
+                THREE.DynamicDrawUsage));
+
+
+        geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+        geometry.setAttribute("phase", new THREE.Float32BufferAttribute(phases, 1));
+        geometry.setAttribute("mIndex", new THREE.Float32BufferAttribute(mIndexs, 1));
+
+        const tree = new THREE.Points(geometry, shaderMaterial);
+
+        const [px, py, pz] = treePosition;
+
+        tree.position.x = px;
+        tree.position.y = py;
+        tree.position.z = pz;
+
+        scene.add(tree);
+    }
+
+    function addSnow(scene, uniforms) {
+        const vertexShader = `
+      attribute float size;
+      attribute float phase;
+      attribute float phaseSecondary;
+      varying vec3 vColor;
+      varying float opacity;
+      uniform float time;
+      uniform float step;
+      float norm(float value, float min, float max ){
+       return (value - min) / (max - min);
+      }
+      float lerp(float norm, float min, float max){
+       return (max - min) * norm + min;
+      }
+      float map(float value, float sourceMin, float sourceMax, float destMin, float destMax){
+       return lerp(norm(value, sourceMin, sourceMax), destMin, destMax);
+      }
+      void main() {
+       float t = time* 0.0006;
+       vColor = color;
+       vec3 p = position;
+       p.y = map(mod(phase+step, 1000.0), 0.0, 1000.0, 25.0, -8.0);
+       p.x += sin(t+phase);
+       p.z += sin(t+phaseSecondary);
+       opacity = map(p.z, -150.0, 15.0, 0.0, 1.0);
+       vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
+       gl_PointSize = size * ( 100.0 / -mvPosition.z );
+       gl_Position = projectionMatrix * mvPosition;
+      }
+      `;
+
+        const fragmentShader = `
+      uniform sampler2D pointTexture;
+      varying vec3 vColor;
+      varying float opacity;
+      void main() {
+       gl_FragColor = vec4( vColor, opacity );
+       gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+      }
+      `;
+        function createSnowSet(sprite) {
+            const totalPoints = 300;
+            const shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    ...uniforms,
+                    pointTexture: {
+                        value: new THREE.TextureLoader().load(sprite) } },
+
+
+                vertexShader,
+                fragmentShader,
+                blending: THREE.AdditiveBlending,
+                depthTest: false,
+                transparent: true,
+                vertexColors: true });
+
+
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            const sizes = [];
+            const phases = [];
+            const phaseSecondaries = [];
+
+            const color = new THREE.Color();
+
+            for (let i = 0; i < totalPoints; i++) {
+                const [x, y, z] = [rand(25, -25), 0, rand(15, -150)];
+                positions.push(x);
+                positions.push(y);
+                positions.push(z);
+
+                color.set(randChoise(["#f1d4d4", "#f1f6f9", "#eeeeee", "#f1f1e8"]));
+
+                colors.push(color.r, color.g, color.b);
+                phases.push(rand(1000));
+                phaseSecondaries.push(rand(1000));
+                sizes.push(rand(4, 2));
             }
+
+            geometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(positions, 3));
+
+            geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+            geometry.setAttribute("phase", new THREE.Float32BufferAttribute(phases, 1));
+            geometry.setAttribute(
+                "phaseSecondary",
+                new THREE.Float32BufferAttribute(phaseSecondaries, 1));
+
+
+            const mesh = new THREE.Points(geometry, shaderMaterial);
+
+            scene.add(mesh);
+        }
+        const sprites = [
+            "https://assets.codepen.io/3685267/snowflake1.png",
+            "https://assets.codepen.io/3685267/snowflake2.png",
+            "https://assets.codepen.io/3685267/snowflake3.png",
+            "https://assets.codepen.io/3685267/snowflake4.png",
+            "https://assets.codepen.io/3685267/snowflake5.png"];
+
+        sprites.forEach(sprite => {
+            createSnowSet(sprite);
+        });
+    }
+
+    function addPlane(scene, uniforms, totalPoints) {
+        const vertexShader = `
+      attribute float size;
+      attribute vec3 customColor;
+      varying vec3 vColor;
+      void main() {
+       vColor = customColor;
+       vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+       gl_PointSize = size * ( 300.0 / -mvPosition.z );
+       gl_Position = projectionMatrix * mvPosition;
+      }
+      `;
+        const fragmentShader = `
+      uniform vec3 color;
+      uniform sampler2D pointTexture;
+      varying vec3 vColor;
+      void main() {
+       gl_FragColor = vec4( vColor, 1.0 );
+       gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+      }
+      `;
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                ...uniforms,
+                pointTexture: {
+                    value: new THREE.TextureLoader().load(`https://assets.codepen.io/3685267/spark1.png`) } },
+
+
+            vertexShader,
+            fragmentShader,
+            blending: THREE.AdditiveBlending,
+            depthTest: false,
+            transparent: true,
+            vertexColors: true });
+
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+        const sizes = [];
+
+        const color = new THREE.Color();
+
+        for (let i = 0; i < totalPoints; i++) {
+            const [x, y, z] = [rand(-25, 25), 0, rand(-150, 15)];
+            positions.push(x);
+            positions.push(y);
+            positions.push(z);
+
+            color.set(randChoise(["#93abd3", "#f2f4c0", "#9ddfd3"]));
+
+            colors.push(color.r, color.g, color.b);
+            sizes.push(1);
+        }
+
+        geometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(positions, 3).setUsage(
+                THREE.DynamicDrawUsage));
+
+
+        geometry.setAttribute(
+            "customColor",
+            new THREE.Float32BufferAttribute(colors, 3));
+
+        geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+
+        const plane = new THREE.Points(geometry, shaderMaterial);
+
+        plane.position.y = -8;
+        scene.add(plane);
+    }
+
+    function addListners(camera, renderer, composer) {
+        document.addEventListener("keydown", e => {
+            const { x, y, z } = camera.position;
+            console.log(`camera.position.set(${x},${y},${z})`);
+            const { x: a, y: b, z: c } = camera.rotation;
+            console.log(`camera.rotation.set(${a},${b},${c})`);
         });
 
-        // 点击 overlay 关闭
-        overlay.addEventListener('click', () => {
-            overlay.classList.remove('active');
-        });
+        window.addEventListener(
+            "resize",
+            () => {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
 
-    </script>
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize(width, height);
+                composer.setSize(width, height);
+            },
+            false);
+
+    }
+
+    // === 新增：点击交互逻辑 ===
+    const messageOverlay = document.getElementById('message-overlay');
+    const musicOverlay = document.getElementById('overlay');
+
+    // 点击屏幕任意位置 (除了音乐选择层和祝福语层本身)
+    document.addEventListener('click', (e) => {
+        // 只有当音乐选择层被移除后（即音乐开始播放后），点击才有效
+        if (!document.getElementById('overlay')) {
+            if (!messageOverlay.contains(e.target) && !messageOverlay.classList.contains('active')) {
+                messageOverlay.classList.add('active');
+            }
+        }
+    });
+
+    // 点击祝福语层关闭
+    messageOverlay.addEventListener('click', () => {
+        messageOverlay.classList.remove('active');
+    });
+
+</script>
+
 </body>
+
 </html>
