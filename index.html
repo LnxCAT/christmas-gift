@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Merry Christmas</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap');
@@ -13,66 +13,75 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            background-color: #050505; /* 深黑背景衬托发光 */
             font-family: 'Mountains of Christmas', cursive;
-            touch-action: manipulation; /* 优化移动端点击 */
         }
 
-        /* 画布样式 - 雪花 */
-        #snow-canvas {
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI 层 */
+        .ui-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 10;
-            pointer-events: none;
-        }
-
-        /* 容器 */
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+            pointer-events: none; /* 让点击穿透到 Canvas，除非点在按钮上 */
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 1;
-            cursor: pointer; /* 提示可点击 */
         }
 
-        /* 祝福文字 */
         .greeting-box {
-            position: absolute;
-            top: 10%;
+            margin-top: 10vh;
             text-align: center;
-            z-index: 20;
-            animation: float 3s ease-in-out infinite;
-            transition: opacity 0.5s ease;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            animation: float 4s ease-in-out infinite;
         }
 
         .greeting {
             color: #fff;
-            font-size: 5rem;
-            text-shadow:
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #ff00de,
-                0 0 30px #ff00de,
-                0 0 40px #ff00de;
+            font-size: 4rem;
             margin: 0;
-            line-height: 1.2;
+            background: linear-gradient(to bottom, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .sub-greeting {
             color: #e0e0e0;
             font-size: 2rem;
-            text-shadow: 0 0 5px rgba(255,255,255,0.8);
             margin-top: 10px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        /* 点击后显示的长文字 */
+        .tap-hint {
+            position: absolute;
+            bottom: 50px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* 祝福语遮罩层 */
         .message-overlay {
             position: fixed;
             top: 0;
@@ -86,8 +95,8 @@
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease;
-            backdrop-filter: blur(5px);
+            transition: opacity 0.6s ease;
+            backdrop-filter: blur(8px);
         }
 
         .message-overlay.active {
@@ -95,374 +104,290 @@
             pointer-events: auto;
         }
 
-        .message-content {
-            color: #fff;
-            font-size: 2rem;
+        .message-card {
+            background: linear-gradient(135deg, #1a1a1a, #2c3e50);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
             text-align: center;
             max-width: 80%;
+            transform: scale(0.8);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .message-overlay.active .message-card {
+            transform: scale(1);
+        }
+
+        .message-text {
+            color: #fff;
+            font-size: 1.8rem;
             line-height: 1.6;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            transform: translateY(20px);
-            transition: transform 0.8s ease;
         }
 
-        .message-overlay.active .message-content {
-            transform: translateY(0);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* === 升级版圣诞树 === */
-        .tree-container {
-            position: absolute;
-            bottom: 80px;
-            width: 400px;
-            height: 500px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            transition: opacity 0.5s ease;
-        }
-
-        .tree {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
-        }
-
-        /* 树叶层级 */
-        .layer {
-            position: relative;
-            background: linear-gradient(180deg, #2d5a27 0%, #1a3c1a 100%);
-            border-radius: 50% 50% 50% 50% / 100% 100% 20% 20%;
-            box-shadow: inset 0 10px 20px rgba(0,0,0,0.2);
-            z-index: 2;
-        }
-
-        /* 积雪效果 */
-        .layer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            height: 15px;
-            background: #fff;
-            border-radius: 50%;
-            filter: blur(2px);
-            opacity: 0.9;
-            box-shadow: 0 0 5px #fff;
-        }
-
-        .layer-1 { width: 120px; height: 100px; z-index: 5; margin-bottom: -40px; }
-        .layer-2 { width: 180px; height: 140px; z-index: 4; margin-bottom: -50px; }
-        .layer-3 { width: 240px; height: 180px; z-index: 3; margin-bottom: -60px; }
-        .layer-4 { width: 300px; height: 200px; z-index: 2; }
-
-        /* 树干 */
-        .trunk {
-            width: 50px;
-            height: 60px;
-            background: linear-gradient(90deg, #3e2723, #5d4037, #3e2723);
-            border-radius: 0 0 10px 10px;
-            position: relative;
-            z-index: 1;
-            margin-top: -20px;
-        }
-
-        /* 顶部的星星 */
-        .star-container {
-            position: absolute;
-            top: -50px;
-            z-index: 10;
-            animation: star-pulse 2s infinite alternate;
-        }
-
-        .star {
-            position: relative;
-            display: block;
-            width: 0px;
-            height: 0px;
-            border-right: 25px solid transparent;
-            border-bottom: 17.5px solid #ffd700;
-            border-left: 25px solid transparent;
-            transform: rotate(35deg);
-        }
-        .star:before {
-            border-bottom: 20px solid #ffd700;
-            border-left: 7.5px solid transparent;
-            border-right: 7.5px solid transparent;
-            position: absolute;
-            height: 0;
-            width: 0;
-            top: -11.25px;
-            left: -16.25px;
-            display: block;
-            content: '';
-            transform: rotate(-35deg);
-        }
-        .star:after {
-            position: absolute;
-            display: block;
-            color: #ffd700;
-            top: 0.75px;
-            left: -26.25px;
-            width: 0px;
-            height: 0px;
-            border-right: 25px solid transparent;
-            border-bottom: 17.5px solid #ffd700;
-            border-left: 25px solid transparent;
-            transform: rotate(-70deg);
-            content: '';
-        }
-
-        @keyframes star-pulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 10px #fff); }
-            100% { transform: scale(1.2); filter: drop-shadow(0 0 25px #ffeb3b); }
-        }
-
-        /* 装饰球 */
-        .bauble {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            z-index: 6;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            animation: twinkle 2s infinite alternate;
-        }
-
-        .red { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b); }
-        .gold { background: radial-gradient(circle at 30% 30%, #f1c40f, #b7950b); }
-        .blue { background: radial-gradient(circle at 30% 30%, #5dade2, #2874a6); }
-
-        .l1-1 { top: 50%; left: 30%; animation-delay: 0s; }
-        .l1-2 { top: 60%; left: 60%; animation-delay: 0.5s; }
-        .l2-1 { top: 40%; left: 20%; animation-delay: 1s; }
-        .l2-2 { top: 55%; left: 50%; animation-delay: 0.2s; }
-        .l2-3 { top: 45%; left: 75%; animation-delay: 0.7s; }
-        .l3-1 { top: 40%; left: 15%; animation-delay: 1.2s; }
-        .l3-2 { top: 60%; left: 35%; animation-delay: 0.3s; }
-        .l3-3 { top: 50%; left: 60%; animation-delay: 0.8s; }
-        .l3-4 { top: 55%; left: 80%; animation-delay: 1.5s; }
-        .l4-1 { top: 35%; left: 10%; animation-delay: 0.4s; }
-        .l4-2 { top: 55%; left: 25%; animation-delay: 0.9s; }
-        .l4-3 { top: 45%; left: 50%; animation-delay: 1.4s; }
-        .l4-4 { top: 60%; left: 70%; animation-delay: 0.1s; }
-        .l4-5 { top: 40%; left: 85%; animation-delay: 0.6s; }
-
-        @keyframes twinkle {
-            0% { filter: brightness(1); box-shadow: 0 0 2px rgba(255,255,255,0.5); }
-            100% { filter: brightness(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.8); }
-        }
-
-        /* 礼物盒 */
-        .gift-container {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 5;
-        }
-
-        .gift {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-        }
-
-        .gift::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 8px; background: rgba(255,255,255,0.3); transform: translateX(-50%); }
-        .gift::after { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 8px; background: rgba(255,255,255,0.3); transform: translateY(-50%); }
-
-        .g1 { background: #e74c3c; left: 120px; bottom: 0; }
-        .g2 { background: #f39c12; right: 110px; bottom: 5px; width: 50px; height: 30px; }
-        .g3 { background: #3498db; left: 170px; bottom: -10px; width: 30px; height: 30px; z-index: 6; }
-
-        /* 地面 */
-        .ground {
-            position: absolute;
-            bottom: 0;
-            width: 120%;
-            height: 100px;
-            background: radial-gradient(circle at center top, #fff, #dde1e7);
-            border-radius: 50% 50% 0 0;
-            transform: translateX(-10%);
-            filter: blur(3px);
-            z-index: 0;
+        .close-hint {
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #888;
+            cursor: pointer;
         }
 
         /* 移动端适配 */
         @media (max-width: 768px) {
-            .greeting { font-size: 3.5rem; }
+            .greeting { font-size: 3rem; }
             .sub-greeting { font-size: 1.5rem; }
-            .tree-container { width: 300px; height: 400px; bottom: 60px; }
-            .layer-1 { width: 90px; height: 75px; margin-bottom: -30px; }
-            .layer-2 { width: 135px; height: 105px; margin-bottom: -37px; }
-            .layer-3 { width: 180px; height: 135px; margin-bottom: -45px; }
-            .layer-4 { width: 225px; height: 150px; }
-            .trunk { width: 35px; height: 45px; margin-top: -15px; }
-            .gift { width: 30px; height: 30px; }
-            .g1 { left: 90px; }
-            .g2 { right: 80px; width: 35px; height: 20px; }
-            .g3 { left: 130px; width: 20px; height: 20px; }
-            .message-content { font-size: 1.5rem; }
+            .message-text { font-size: 1.4rem; }
+            .message-card { padding: 25px; width: 85%; }
         }
-
     </style>
+    <!-- 引入 Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
 </head>
 <body>
 
-    <canvas id="snow-canvas"></canvas>
+    <div id="canvas-container"></div>
 
-    <div class="container" id="main-container">
+    <div class="ui-container">
         <div class="greeting-box">
             <h1 class="greeting">Merry Christmas</h1>
             <div class="sub-greeting">To: 小星⭐</div>
-            <div style="margin-top: 20px; font-size: 1rem; color: rgba(255,255,255,0.6); animation: pulse 2s infinite;">(Tap anywhere to open card)</div>
         </div>
-
-        <div class="tree-container">
-            <div class="tree">
-                <div class="star-container">
-                    <div class="star"></div>
-                </div>
-
-                <div class="layer layer-1">
-                    <div class="bauble red l1-1"></div>
-                    <div class="bauble gold l1-2"></div>
-                </div>
-                <div class="layer layer-2">
-                    <div class="bauble blue l2-1"></div>
-                    <div class="bauble red l2-2"></div>
-                    <div class="bauble gold l2-3"></div>
-                </div>
-                <div class="layer layer-3">
-                    <div class="bauble gold l3-1"></div>
-                    <div class="bauble blue l3-2"></div>
-                    <div class="bauble red l3-3"></div>
-                    <div class="bauble blue l3-4"></div>
-                </div>
-                <div class="layer layer-4">
-                    <div class="bauble red l4-1"></div>
-                    <div class="bauble gold l4-2"></div>
-                    <div class="bauble blue l4-3"></div>
-                    <div class="bauble red l4-4"></div>
-                    <div class="bauble gold l4-5"></div>
-                </div>
-
-                <div class="trunk"></div>
-
-                <div class="gift-container">
-                    <div class="gift g1"></div>
-                    <div class="gift g2"></div>
-                    <div class="gift g3"></div>
-                </div>
-            </div>
-            <div class="ground"></div>
-        </div>
+        <div class="tap-hint">(Tap screen for a surprise)</div>
     </div>
 
-    <!-- 点击后显示的祝福语层 -->
     <div class="message-overlay" id="message-overlay">
-        <div class="message-content">
-            May the Christmas season bring only happiness and joy to you and your family.<br><br>
-            Wishing you peace, love, and joy this Christmas and throughout 2026.<br><br>
-            Merry Christmas! 🎄✨
+        <div class="message-card">
+            <div class="message-text">
+                May the Christmas season bring only happiness and joy to you and your family.<br><br>
+                Wishing you peace, love, and joy this Christmas and throughout 2026.<br><br>
+                Merry Christmas! 🎄✨
+            </div>
+            <div class="close-hint">Tap to close</div>
         </div>
     </div>
 
-    <script>
-        // 雪花特效逻辑
-        const canvas = document.getElementById('snow-canvas');
-        const ctx = canvas.getContext('2d');
+    <script type="module">
+        import * as THREE from 'three';
 
-        let width = window.innerWidth;
-        let height = window.innerHeight;
+        // --- 初始化场景 ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // 添加一点迷雾，增加深邃感
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
 
-        canvas.width = width;
-        canvas.height = height;
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 12); // 相机位置
+        camera.lookAt(0, 2, 0);
 
-        const snowflakes = [];
-        const maxSnowflakes = 150;
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 优化移动端性能
+        container.appendChild(renderer.domElement);
 
-        class Snowflake {
-            constructor() {
-                this.reset();
-            }
+        // --- 灯光系统 ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
 
-            reset() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * -height;
-                this.radius = Math.random() * 3 + 1;
-                this.speed = Math.random() * 2 + 1;
-                this.sway = Math.random() * 0.05 - 0.025;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
+        // 主光源 - 暖色调
+        const pointLight = new THREE.PointLight(0xffd700, 1.5, 50);
+        pointLight.position.set(5, 10, 5);
+        scene.add(pointLight);
 
-            update() {
-                this.y += this.speed;
-                this.x += Math.sin(this.y * 0.01) + this.sway;
+        // 补光 - 冷色调
+        const blueLight = new THREE.PointLight(0x0044ff, 1, 30);
+        blueLight.position.set(-5, 5, -5);
+        scene.add(blueLight);
 
-                if (this.y > height) {
-                    this.reset();
-                }
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
+        // --- 构建 3D 圣诞树 ---
+        const treeGroup = new THREE.Group();
+        scene.add(treeGroup);
 
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-                gradient.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
-                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                ctx.closePath();
+        // 1. 树叶 (层叠圆锥体)
+        const leavesMaterial = new THREE.MeshStandardMaterial({
+            color: 0x0f5e28,
+            roughness: 0.8,
+            metalness: 0.2,
+            flatShading: true // 低多边形风格，更有棱角感
+        });
+
+        const levels = 5;
+        for (let i = 0; i < levels; i++) {
+            const radius = 3.5 - i * 0.6;
+            const height = 2.5;
+            const y = i * 1.8;
+
+            const geometry = new THREE.ConeGeometry(radius, height, 8); // 8边形，比较立体
+            const cone = new THREE.Mesh(geometry, leavesMaterial);
+            cone.position.y = y + 1;
+            cone.castShadow = true;
+            cone.receiveShadow = true;
+            treeGroup.add(cone);
+
+            // 2. 装饰彩灯 (每层边缘)
+            const ornamentCount = 6 + i * 2; // 下面多，上面少
+            for (let j = 0; j < ornamentCount; j++) {
+                const angle = (j / ornamentCount) * Math.PI * 2;
+                const r = radius - 0.2; // 稍微往里一点
+
+                // 随机颜色：红、金、蓝
+                const colors = [0xff0000, 0xffd700, 0x0088ff];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                const bulbGeo = new THREE.SphereGeometry(0.15, 16, 16);
+                const bulbMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    emissive: color, // 自发光
+                    emissiveIntensity: 0.8,
+                    metalness: 0.9,
+                    roughness: 0.1
+                });
+
+                const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+                // 计算圆锥底部的边缘位置
+                bulb.position.set(
+                    Math.cos(angle) * r,
+                    y - height/2 + 1 + 0.1, // 挂在每层底部边缘
+                    Math.sin(angle) * r
+                );
+
+                // 给彩灯添加自定义属性用于动画
+                bulb.userData = {
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 2 + Math.random() * 2
+                };
+
+                treeGroup.add(bulb);
             }
         }
 
-        for (let i = 0; i < maxSnowflakes; i++) {
-            snowflakes.push(new Snowflake());
+        // 3. 树干
+        const trunkGeo = new THREE.CylinderGeometry(0.6, 0.8, 2, 8);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5e3a18, roughness: 0.9 });
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.y = 0;
+        treeGroup.add(trunk);
+
+        // 4. 顶部星星
+        const starGeo = new THREE.OctahedronGeometry(0.6, 0);
+        const starMat = new THREE.MeshStandardMaterial({
+            color: 0xffd700,
+            emissive: 0xffd700,
+            emissiveIntensity: 1.5,
+            metalness: 1,
+            roughness: 0
+        });
+        const star = new THREE.Mesh(starGeo, starMat);
+        star.position.y = levels * 1.8 + 0.5;
+        treeGroup.add(star);
+
+        // 5. 地面 (反光雪地)
+        const groundGeo = new THREE.CircleGeometry(15, 32);
+        const groundMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.3,
+            metalness: 0.1
+        });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -1;
+        scene.add(ground);
+
+        // --- 粒子雪花系统 ---
+        const snowCount = 1000;
+        const snowGeo = new THREE.BufferGeometry();
+        const snowPos = [];
+        const snowVelocities = [];
+
+        for(let i=0; i<snowCount; i++) {
+            snowPos.push(
+                (Math.random() - 0.5) * 30, // x
+                (Math.random() - 0.5) * 30 + 10, // y (start high)
+                (Math.random() - 0.5) * 30  // z
+            );
+            snowVelocities.push(
+                (Math.random() - 0.5) * 0.05, // vx
+                -(Math.random() * 0.05 + 0.02), // vy (down)
+                (Math.random() - 0.5) * 0.05 // vz
+            );
         }
+
+        snowGeo.setAttribute('position', new THREE.Float32BufferAttribute(snowPos, 3));
+        const snowMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.15,
+            transparent: true,
+            opacity: 0.8
+        });
+        const snowSystem = new THREE.Points(snowGeo, snowMat);
+        scene.add(snowSystem);
+
+        // --- 动画循环 ---
+        const clock = new THREE.Clock();
 
         function animate() {
-            ctx.clearRect(0, 0, width, height);
-            snowflakes.forEach(flake => {
-                flake.update();
-                flake.draw();
-            });
             requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // 1. 树旋转
+            treeGroup.rotation.y = Math.sin(time * 0.2) * 0.3; // 缓慢左右摇摆
+
+            // 2. 星星自转
+            star.rotation.y = time * 0.5;
+            star.scale.setScalar(1 + Math.sin(time * 3) * 0.1); // 呼吸效果
+
+            // 3. 彩灯闪烁
+            treeGroup.children.forEach(child => {
+                if (child.geometry.type === 'SphereGeometry') { // 找到彩灯
+                    const intensity = 0.5 + Math.sin(time * child.userData.speed + child.userData.phase) * 0.5;
+                    child.material.emissiveIntensity = intensity > 0 ? intensity : 0.1;
+                }
+            });
+
+            // 4. 雪花飘落
+            const positions = snowSystem.geometry.attributes.position.array;
+            for(let i=0; i<snowCount; i++) {
+                // Update y
+                positions[i*3 + 1] += snowVelocities[i]; // y
+                positions[i*3] += Math.sin(time + i) * 0.01; // x sway
+
+                // Reset if below ground
+                if(positions[i*3 + 1] < -1) {
+                    positions[i*3 + 1] = 15;
+                }
+            }
+            snowSystem.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
         }
 
         animate();
 
+        // --- 交互逻辑 ---
         window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 点击交互逻辑
-        const container = document.getElementById('main-container');
+        // 点击事件
         const overlay = document.getElementById('message-overlay');
 
-        // 点击任意位置显示祝福语
-        container.addEventListener('click', () => {
-            overlay.classList.add('active');
+        // 点击屏幕任意位置 (除了 overlay 内部)
+        document.addEventListener('click', (e) => {
+            // 如果点击的不是 overlay 内部的内容，则显示 overlay
+            if (!overlay.contains(e.target) && !overlay.classList.contains('active')) {
+                overlay.classList.add('active');
+            }
         });
 
-        // 点击祝福语层关闭它
+        // 点击 overlay 关闭
         overlay.addEventListener('click', () => {
             overlay.classList.remove('active');
         });
