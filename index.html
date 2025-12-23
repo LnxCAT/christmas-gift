@@ -23,7 +23,7 @@
             justify-content: center;
             background: #161616;
             color: #c5a880;
-            font-family: 'Mountains of Christmas', sans-serif; /* 使用圣诞字体 */
+            font-family: 'Mountains of Christmas', sans-serif; /* 全局使用圣诞字体 */
         }
 
         /* 音乐选择菜单样式优化 */
@@ -57,7 +57,8 @@
             margin-bottom: 16px;
             line-height: 1.5;
             cursor: pointer;
-            font-family: sans-serif; /* 按钮保持清晰字体 */
+            font-family: 'Mountains of Christmas', sans-serif; /* 按钮也用圣诞字体 */
+            font-size: 1.2rem; /* 稍微加大一点 */
             transition: all 0.3s;
         }
 
@@ -69,8 +70,8 @@
         .title {
             color: #a07676;
             font-weight: bold;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 2rem; /* 标题加大 */
+            margin-bottom: 30px;
             text-align: center;
         }
 
@@ -91,7 +92,7 @@
 
         .main-title {
             color: #fff;
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin: 0;
             text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de;
             animation: glow 2s ease-in-out infinite alternate;
@@ -99,7 +100,7 @@
 
         .sub-title {
             color: #e0e0e0;
-            font-size: 1.5rem;
+            font-size: 2rem;
             margin-top: 10px;
             text-shadow: 0 0 5px rgba(255,255,255,0.5);
         }
@@ -110,7 +111,7 @@
             width: 100%;
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
-            font-size: 1rem;
+            font-size: 1.2rem;
             z-index: 20;
             pointer-events: none;
             animation: pulse 2s infinite;
@@ -156,7 +157,7 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
             text-align: center;
-            max-width: 80%;
+            max-width: 85%;
             transform: scale(0.8);
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -167,16 +168,18 @@
 
         .message-text {
             color: #fff;
-            font-size: 1.5rem;
-            line-height: 1.6;
-            font-family: sans-serif;
+            font-size: 2rem; /* 字体加大 */
+            line-height: 1.5;
+            font-family: 'Mountains of Christmas', cursive; /* 使用歪歪扭扭的字体 */
+            text-shadow: 0 0 5px rgba(255,215,0,0.3);
         }
 
         .close-hint {
             margin-top: 20px;
-            font-size: 1rem;
+            font-size: 1.2rem;
             color: #888;
             cursor: pointer;
+            font-family: 'Mountains of Christmas', cursive;
         }
 
     </style>
@@ -205,7 +208,7 @@
 <!-- 音乐选择界面 -->
 <div id="overlay">
     <ul>
-        <li class="title">请选择一首音乐开始</li>
+        <li class="title">Please Select Music</li>
         <!-- 移除了第一首无效音乐 -->
         <li><button class="btn" id="btnB" type="button">This Christmas</button></li>
         <li><button class="btn" id="btnC" type="button">No room at the inn</button></li>
@@ -346,7 +349,7 @@
 
     function loadAudio(i) {
         document.getElementById("overlay").innerHTML =
-            '<div class="text-loading">正在加载音乐...</div>';
+            '<div class="text-loading">Loading...</div>';
         const files = [
             // 移除了第一首无效链接
             "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Dott/This_Christmas/Dott_-_01_-_This_Christmas.mp3",
